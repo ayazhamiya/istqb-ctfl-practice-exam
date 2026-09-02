@@ -1,11 +1,12 @@
 /* Service worker: precache the app shell so the exam works with no network,
    and cache the web fonts opportunistically the first time they load.
    Bump CACHE when you change any shell file. */
-var CACHE = "ctfl-exam-v1";
+var CACHE = "ctfl-exam-v2";
 var SHELL = [
   "./",
   "index.html",
   "assets/app.css",
+  "assets/i18n.js",
   "assets/app.js",
   "assets/questions.js",
   "manifest.webmanifest",
