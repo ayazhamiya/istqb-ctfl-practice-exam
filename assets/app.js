@@ -46,6 +46,11 @@
     }
     return text;
   }
+  /* the question bank is trusted HTML, but glossary text is rendered inside markup
+     we build with a highlight, so escape it before that */
+  function esc(v) {
+    return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
   function chapterName(ch) {
     var table = I18N.chapters[LANG] || I18N.chapters.en;
     return table[ch] || I18N.chapters.en[ch];
@@ -64,6 +69,83 @@
   function setName(id) {
     if (id === "mix") return t("set.mix.name");
     return t("set." + id + ".name");
+  }
+
+  /* ---------- concept notes ----------
+     theory.js is not needed to sit an exam, so it is fetched on demand rather than
+     shipped in the initial bundle. The single-file build inlines it, in which case
+     window.CTFL_THEORY already exists and no request is made. */
+  var theoryPromise = null;
+  function loadTheory() {
+    if (window.CTFL_THEORY) return Promise.resolve(window.CTFL_THEORY);
+    if (theoryPromise) return theoryPromise;
+    theoryPromise = new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = "assets/theory.js";
+      s.onload = function () { resolve(window.CTFL_THEORY || null); };
+      s.onerror = function () { resolve(null); };   // offline and not cached: degrade quietly
+      document.head.appendChild(s);
+    });
+    return theoryPromise;
+  }
+  /* ---------- glossary ----------
+     Same on-demand pattern as the notes: nobody needs the glossary to sit an exam,
+     so it costs nothing until the reader opens it. The single-file build inlines it. */
+  var glossPromise = null;
+  function loadGlossary() {
+    if (window.CTFL_GLOSSARY) return Promise.resolve(window.CTFL_GLOSSARY);
+    if (glossPromise) return glossPromise;
+    glossPromise = new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = "assets/glossary.js";
+      s.onload = function () { resolve(window.CTFL_GLOSSARY || null); };
+      s.onerror = function () { resolve(null); };   // offline and not cached: degrade quietly
+      document.head.appendChild(s);
+    });
+    return glossPromise;
+  }
+
+  function loKey(lo) { return String(lo).split(" ")[0]; }
+  function noteFor(lo) {
+    var all = window.CTFL_THEORY;
+    if (!all) return null;
+    var entry = all[loKey(lo)];
+    if (!entry) return null;
+    return entry[LANG] || entry.en || null;
+  }
+  function conceptBody(note, withLead) {
+    var h = '<div class="concept-body">';
+    if (withLead !== false) h += '<p class="c-lead">' + note.oneLine + "</p>";
+    if (note.tests) h += '<h4>' + t("concept.tests") + "</h4>" + note.tests;
+    if (note.worked) h += '<h4>' + t("concept.worked") + "</h4>" + note.worked;
+    if (note.traps && note.traps.length) {
+      h += '<h4>' + t("concept.traps") + "</h4><ul>";
+      note.traps.forEach(function (x) { h += "<li>" + x + "</li>"; });
+      h += "</ul>";
+    }
+    if (note.confuse && note.confuse.length) {
+      h += '<h4>' + t("concept.confuse") + '</h4><div class="figure"><table class="dt confuse">';
+      note.confuse.forEach(function (row) {
+        h += '<tr><td class="rowhead">' + row[0] + '</td><td class="rowhead">' + row[1] + "</td><td>" + row[2] + "</td></tr>";
+      });
+      h += "</table></div>";
+    }
+    if (note.readNext) h += '<p class="c-ref">' + t("concept.readNext", { n: note.readNext }) + "</p>";
+    h += "</div>";
+    return h;
+  }
+  function conceptHtml(note) {
+    return '<details class="concept"><summary>' + t("concept.label") + ": " + note.title +
+           "</summary>" + conceptBody(note) + "</details>";
+  }
+  /* Populate any concept slots that are on the page but still empty. Safe to call
+     repeatedly: after grading, after the theory file arrives, after a language switch. */
+  function fillConcepts() {
+    var slots = document.querySelectorAll(".concept-slot");
+    for (var i = 0; i < slots.length; i++) {
+      var note = noteFor(slots[i].getAttribute("data-lo"));
+      slots[i].innerHTML = note ? conceptHtml(note) : "";
+    }
   }
 
   /* ---------- small helpers ---------- */
@@ -154,7 +236,7 @@
   function poolAll() {
     var out = [];
     SETS.forEach(function (s) {
-      s.questions.forEach(function (q, i) { out.push({ s: s.id, i: i, ch: q.ch }); });
+      s.questions.forEach(function (q, i) { out.push({ s: s.id, i: i, ch: q.ch, lo: loKey(q.lo) }); });
     });
     return out;
   }
@@ -194,10 +276,12 @@
     saveSession();
   }
 
-  function buildRevision(chapter) {
-    var refs = shuffled(poolAll().filter(function (r) { return r.ch === Number(chapter); }));
+  function buildRevision(chapter, lo) {
+    var refs = shuffled(poolAll().filter(function (r) {
+      return lo ? r.lo === lo : r.ch === Number(chapter);
+    }));
     session = {
-      v: 2, mode: "revision", setId: "all", chapter: Number(chapter),
+      v: 2, mode: "revision", setId: "all", chapter: Number(chapter), lo: lo || null,
       items: withOrder(refs, true),
       answers: {}, flags: {}, graded: false,
       durationMin: 0, startedAt: Date.now(), endsAt: 0
@@ -276,11 +360,13 @@
     }
     $("sheet").innerHTML = html;
 
-    var cells = "";
+    var cells = "", cellsMobile = "";
     for (var g = 0; g < session.items.length; g++) {
       cells += '<a class="cell" href="#q' + (g + 1) + '" id="c' + g + '">' + (g + 1) + "</a>";
+      cellsMobile += '<a class="cell" href="#q' + (g + 1) + '" data-cell="' + g + '">' + (g + 1) + "</a>";
     }
     $("grid").innerHTML = cells;
+    $("gridMobile").innerHTML = cellsMobile;
     $("mTot").textContent = session.items.length;
   }
 
@@ -324,10 +410,13 @@
     box.innerHTML =
       '<p class="key">' + t("q.key", { correct: correctLetters, yours: yourLetters }) + "</p>" +
       "<p>" + v.q.just + "</p>" +
-      '<p class="ref">' + t("q.ref", { chapter: chapterName(v.q.ch), lo: v.q.lo }) + "</p>";
+      '<p class="ref">' + t("q.ref", { chapter: chapterName(v.q.ch), lo: v.q.lo }) + "</p>" +
+      '<div class="concept-slot" data-lo="' + v.q.lo + '"></div>';
     box.hidden = false;
     var cell = $("c" + idx);
     if (cell) cell.className = "cell " + (ok ? "ok" : "no");
+    var cellMobile = document.querySelector('[data-cell="' + idx + '"]');
+    if (cellMobile) cellMobile.className = "cell " + (ok ? "ok" : "no");
   }
 
   /* ---------- interaction ---------- */
@@ -354,7 +443,11 @@
     }
     saveSession();
     refreshMeter();
-    if (session.mode === "revision" && isAnswered(idx)) revealAnswer(idx);
+    if (session.mode === "revision" && isAnswered(idx)) {
+      revealAnswer(idx);
+      fillConcepts();
+      loadTheory().then(fillConcepts);
+    }
   }
 
   function onSheetClick(e) {
@@ -374,13 +467,19 @@
       var done = isAnswered(idx);
       if (done) answered++;
       if (session.flags[idx]) flagged++;
-      var cell = $("c" + idx);
-      if (cell && !session.graded && !(session.mode === "revision" && done)) {
-        cell.className = "cell" + (done ? " done" : "") + (session.flags[idx] ? " flagged" : "");
+      if (!session.graded && !(session.mode === "revision" && done)) {
+        var cls = "cell" + (done ? " done" : "") + (session.flags[idx] ? " flagged" : "");
+        var cell = $("c" + idx);
+        if (cell) cell.className = cls;
+        var cellMobile = document.querySelector('[data-cell="' + idx + '"]');
+        if (cellMobile) cellMobile.className = cls;
       }
     }
     $("mAns").textContent = answered;
-    $("mFlag").textContent = flagged;
+    var sheetAns = $("sheetAnsLabel");
+    if (sheetAns) sheetAns.textContent = t("sheet.answered", { n: answered, total: session.items.length });
+    var sheetFlag = $("sheetFlagLabel");
+    if (sheetFlag) sheetFlag.textContent = t("sheet.flagged", { n: flagged });
     return answered;
   }
 
@@ -402,23 +501,36 @@
   /* ---------- screens ---------- */
   function showHome() {
     stopClock();
+    studyChapter = null;
+    $("study").hidden = true;
+    $("glossary").hidden = true;
     $("home").hidden = false;
     $("paper").hidden = true;
     $("result").hidden = true;
     $("rail").hidden = true;
+    $("mobileSheet").hidden = true;
     $("meterWrap").hidden = true;
     $("clock").hidden = true;
     $("btnSubmit").hidden = true;
+    $("btnBackTop").hidden = true;
+    renderStudyChapters();
     renderHistory();
     renderResumeButton();
     window.scrollTo(0, 0);
   }
 
   function openPaper() {
+    studyChapter = null;
+    $("study").hidden = true;
+    $("glossary").hidden = true;
     $("home").hidden = true;
     $("paper").hidden = false;
     $("result").hidden = true;
     $("rail").hidden = false;
+    $("mobileSheet").hidden = false;
+    $("sheetGrid").hidden = true;
+    $("btnSheetToggle").setAttribute("aria-expanded", "false");
+    $("btnBackTop").hidden = false;
     $("meterWrap").hidden = false;
     $("btnSubmit").hidden = session.mode !== "exam" || session.graded;
     $("confirm").hidden = true;
@@ -430,13 +542,16 @@
       $("paperSub").textContent = t("paper.sub.exam", { n: session.items.length });
     } else {
       $("paperEyebrow").textContent = t("paper.revision");
-      $("paperTitle").textContent = t("paper.chapter") + " " + chapterName(session.chapter);
+      $("paperTitle").textContent = session.lo
+        ? t("paper.objective", { lo: session.lo })
+        : t("paper.chapter") + " " + chapterName(session.chapter);
       $("paperSub").textContent = t("paper.sub.revision", { n: session.items.length });
     }
 
     renderPaper();
     restoreSelections();
     refreshMeter();
+    loadTheory().then(fillConcepts);
     if (session.mode === "exam" && !session.graded) startClock(); else $("clock").hidden = true;
     if (session.mode === "revision") {
       for (var idx = 0; idx < session.items.length; idx++) if (isAnswered(idx)) revealAnswer(idx);
@@ -489,12 +604,18 @@
     for (var c = 1; c <= 6; c++) {
       if (!byChapter[c][1]) continue;
       var pctCh = Math.round((byChapter[c][0] / byChapter[c][1]) * 100);
-      bars += '<div class="brow"><div><div class="nm">' + chapterName(c) + "</div>" +
+      var st = chapterNoteStats(c);
+      var link = st.withNote
+        ? ' <button class="linkish" type="button" data-study="' + c + '">' + t("result.weak") + " &rarr;</button>"
+        : "";
+      bars += '<div class="brow"><div><div class="nm">' + chapterName(c) + (pctCh < 65 ? link : "") + "</div>" +
               '<div class="track"><div class="fill' + (pctCh < 65 ? " weak" : "") + '" style="width:' + pctCh + '%"></div></div></div>' +
               '<div class="val">' + byChapter[c][0] + "/" + byChapter[c][1] + "</div></div>";
     }
     $("rBars").innerHTML = bars;
     $("result").hidden = false;
+    fillConcepts();
+    loadTheory().then(fillConcepts);
 
     if (session.mode === "exam") {
       var history = readStore(HISTORY_KEY, []);
@@ -516,6 +637,168 @@
     if (first) first.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  /* ---------- study screen ---------- */
+  var studyChapter = null;
+
+  /* how many objectives a chapter uses, and how many of those have a note */
+  function chapterNoteStats(ch) {
+    var used = {}, withNote = 0, total = 0;
+    poolAll().forEach(function (r) { if (r.ch === Number(ch)) used[r.lo] = true; });
+    Object.keys(used).forEach(function (lo) {
+      total++;
+      if (window.CTFL_THEORY && window.CTFL_THEORY[lo]) withNote++;
+    });
+    return { total: total, withNote: withNote };
+  }
+
+  function openStudy(ch) {
+    studyChapter = Number(ch);
+    $("home").hidden = true;
+    $("paper").hidden = true;
+    $("result").hidden = true;
+    $("rail").hidden = true;
+    $("mobileSheet").hidden = true;
+    $("meterWrap").hidden = true;
+    $("clock").hidden = true;
+    $("btnSubmit").hidden = true;
+    $("btnBackTop").hidden = false;
+    $("glossary").hidden = true;
+    $("study").hidden = false;
+    renderStudy();
+    window.scrollTo(0, 0);
+  }
+
+  function renderStudy() {
+    var ch = studyChapter;
+    $("studyTitle").textContent = chapterName(ch);
+    var stats = chapterNoteStats(ch);
+    $("studySub").textContent = t("study.sub", { n: stats.withNote, total: stats.total });
+
+    /* objectives in this chapter that have a note, in syllabus order */
+    var counts = {};
+    poolAll().forEach(function (r) { if (r.ch === ch) counts[r.lo] = (counts[r.lo] || 0) + 1; });
+    var los = Object.keys(counts).filter(function (lo) {
+      return window.CTFL_THEORY && window.CTFL_THEORY[lo];
+    }).sort();
+
+    if (!los.length) {
+      $("studyBody").innerHTML = '<div class="card"><p class="empty">' + t("study.none") + "</p></div>";
+      return;
+    }
+    var html = "";
+    los.forEach(function (lo) {
+      var note = noteFor(lo);
+      html += '<article class="scard">';
+      html += '<div class="scard-head"><span class="lo-chip">' + lo + '</span><h3>' + note.title + "</h3></div>";
+      html += '<p class="scard-lead">' + note.oneLine + "</p>";
+      html += '<details class="concept scard-more"><summary>' + t("study.full") + "</summary>" +
+              conceptBody(note, false) + "</details>";
+      html += '<div class="go" style="margin-top:1rem"><button class="btn" type="button" data-practise="' + lo + '">' +
+              t("study.practise") + " · " + counts[lo] + "</button></div>";
+      html += "</article>";
+    });
+    $("studyBody").innerHTML = html;
+  }
+
+  /* ---------- glossary screen ---------- */
+  var glossChapter = "all";
+  var glossQuery = "";
+
+  function glossTerms() { return window.CTFL_GLOSSARY || []; }
+
+  /* the term as this reader sees it, plus the other language kept alongside:
+     someone revising in German still meets the English term in the exam. */
+  function glossPrimary(item) { return LANG === "de" && item.de ? item.de : item.en; }
+  function glossSecondary(item) { return LANG === "de" && item.de ? item.en : item.de; }
+  function glossDef(item) { return item.def[LANG] || item.def.en; }
+
+  function fold(v) {
+    v = String(v).toLowerCase();
+    return v.normalize ? v.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : v;
+  }
+  function glossMatches(item, needle) {
+    if (!needle) return true;
+    return fold(item.en + " " + item.de + " " + item.def.en + " " + item.def.de).indexOf(needle) !== -1;
+  }
+  function mark(text, needle) {
+    var safe = esc(text);
+    if (!needle) return safe;
+    var i = fold(safe).indexOf(needle);
+    if (i === -1) return safe;   // matched on the other language or the definition
+    return safe.slice(0, i) + "<mark>" + safe.slice(i, i + needle.length) + "</mark>" + safe.slice(i + needle.length);
+  }
+
+  function openGlossary() {
+    $("home").hidden = true;
+    $("paper").hidden = true;
+    $("result").hidden = true;
+    $("study").hidden = true;
+    $("rail").hidden = true;
+    $("mobileSheet").hidden = true;
+    $("meterWrap").hidden = true;
+    $("clock").hidden = true;
+    $("btnSubmit").hidden = true;
+    $("btnBackTop").hidden = false;
+    $("glossary").hidden = false;
+    renderGlossary();
+    window.scrollTo(0, 0);
+  }
+
+  function renderGlossChips() {
+    var chapters = Object.keys(I18N.chapters.en);
+    var html = '<button class="chip" type="button" data-gch="all" aria-pressed="' +
+      (glossChapter === "all") + '">' + t("gloss.all") + "</button>";
+    chapters.forEach(function (ch) {
+      html += '<button class="chip" type="button" data-gch="' + ch + '" aria-pressed="' +
+        (glossChapter === ch) + '" title="' + esc(chapterName(ch)) + '">' +
+        t("gloss.ch", { n: ch }) + "</button>";
+    });
+    $("glossChips").innerHTML = html;
+  }
+
+  function renderGlossary() {
+    var all = glossTerms();
+    $("glossSub").textContent = all.length
+      ? t("gloss.sub", { n: all.length })
+      : t("gloss.unavailable");
+    $("glossSearch").placeholder = t("gloss.search");
+    renderGlossChips();
+
+    var needle = fold(glossQuery.trim());
+    var hits = all.filter(function (item) {
+      if (glossChapter !== "all" && String(item.ch) !== glossChapter) return false;
+      return glossMatches(item, needle);
+    });
+    $("glossShown").textContent = t("gloss.count", { n: hits.length });
+
+    if (!hits.length) {
+      $("glossBody").innerHTML = '<div class="card"><p class="empty">' +
+        (all.length ? t("gloss.none") : t("gloss.unavailable")) + "</p></div>";
+      return;
+    }
+
+    /* group by chapter so the list reads in syllabus order even while filtered */
+    var byCh = {};
+    hits.forEach(function (item) { (byCh[item.ch] = byCh[item.ch] || []).push(item); });
+    var html = "";
+    Object.keys(byCh).sort(function (a, b) { return a - b; }).forEach(function (ch) {
+      html += '<section class="gsec"><h3>' + esc(chapterName(ch)) + "</h3><dl>";
+      byCh[ch].forEach(function (item) {
+        var second = glossSecondary(item);
+        html += '<div class="gterm"><dt>' + mark(glossPrimary(item), needle) + "</dt>";
+        if (second) html += '<p class="de">' + mark(second, needle) + "</p>";
+        html += "<dd>" + mark(glossDef(item), needle) + "</dd></div>";
+      });
+      html += "</dl></section>";
+    });
+    $("glossBody").innerHTML = html;
+  }
+
+  function renderGlossCount() {
+    var n = glossTerms().length;
+    $("glossCount").textContent = n ? t("gloss.terms", { n: n }) : "";
+  }
+
   /* ---------- home screen widgets ---------- */
   function renderSetPicks() {
     var ids = SETS.map(function (s) { return s.id; }).concat(["mix"]);
@@ -533,6 +816,19 @@
       return '<button class="chap" type="button" data-chapter="' + ch + '">' +
         '<span class="nm">' + chapterName(ch) + "</span>" +
         '<span class="ct">' + (counts[ch] || 0) + " " + t("chap.count") + "</span>" +
+        '<span class="arrow" aria-hidden="true">&rarr;</span></button>';
+    }).join("");
+  }
+
+  function renderStudyChapters() {
+    var el = $("studyList");
+    if (!el) return;
+    el.innerHTML = Object.keys(I18N.chapters.en).map(function (ch) {
+      var st = chapterNoteStats(ch);
+      var disabled = st.withNote === 0 ? " disabled" : "";
+      return '<button class="chap" type="button" data-study="' + ch + '"' + disabled + '>' +
+        '<span class="nm">' + chapterName(ch) + "</span>" +
+        '<span class="ct">' + t("chap.notes", { n: st.withNote + "/" + st.total }) + "</span>" +
         '<span class="arrow" aria-hidden="true">&rarr;</span></button>';
     }).join("");
   }
@@ -605,6 +901,7 @@
       $("btnLang").textContent = other.label;
       $("btnLang").setAttribute("lang", other.code);
     }
+    updateThemeButtonLabel();
   }
 
   function setLanguage(code) {
@@ -614,7 +911,12 @@
     applyStaticStrings();
     renderSetPicks();
     renderChapters();
-    if (!$("paper").hidden && session) {
+    if (!$("glossary").hidden) {
+      renderGlossary();
+      renderGlossCount();
+    } else if (!$("study").hidden && studyChapter) {
+      renderStudy();
+    } else if (!$("paper").hidden && session) {
       // Re-render the paper in the new language. The session stores set ids, question
       // indices and the option order, so answers and marking are unaffected.
       var wasGraded = session.graded;
@@ -622,12 +924,21 @@
       openPaper();
       if (wasGraded) grade(false);
     } else {
+      renderStudyChapters();
       renderHistory();
       renderResumeButton();
     }
   }
 
   /* ---------- theme ---------- */
+  function updateThemeButtonLabel() {
+    var root = document.documentElement, current = root.getAttribute("data-theme");
+    var systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var isDark = current ? current === "dark" : systemDark;
+    // the theme button offers the theme you would switch TO
+    $("btnTheme").textContent = isDark ? t("bar.theme.light") : t("bar.theme.dark");
+  }
+
   (function initTheme() {
     var stored = null;
     try { stored = localStorage.getItem(THEME_KEY); } catch (e) {}
@@ -640,6 +951,7 @@
     var next = current ? (current === "dark" ? "light" : "dark") : (systemDark ? "light" : "dark");
     root.setAttribute("data-theme", next);
     try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    updateThemeButtonLabel();
   });
 
   $("btnLang").addEventListener("click", function () {
@@ -651,6 +963,15 @@
   $("sheet").addEventListener("change", onSheetChange);
   $("sheet").addEventListener("click", onSheetClick);
 
+  /* mobile answer sheet: tap the handle or the toggle row to expand/collapse the cell grid */
+  function toggleMobileSheet() {
+    var grid = $("sheetGrid"), willShow = grid.hidden;
+    grid.hidden = !willShow;
+    $("btnSheetToggle").setAttribute("aria-expanded", willShow ? "true" : "false");
+  }
+  $("btnSheetHandle").addEventListener("click", toggleMobileSheet);
+  $("btnSheetToggle").addEventListener("click", toggleMobileSheet);
+
   $("setPicks").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-set]");
     if (!btn) return;
@@ -659,6 +980,39 @@
       c.setAttribute("aria-pressed", c.getAttribute("data-set") === chosenSetId);
     });
   });
+
+  /* study chapter buttons appear on the home screen and inside the result bars */
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest("[data-study]") : null;
+    if (!btn || btn.disabled) return;
+    loadTheory().then(function () { openStudy(btn.getAttribute("data-study")); });
+  });
+
+  /* practise one objective, from the study screen */
+  $("studyBody").addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest("[data-practise]") : null;
+    if (!btn) return;
+    buildRevision(null, btn.getAttribute("data-practise"));
+    openPaper();
+    window.scrollTo(0, 0);
+  });
+
+  $("btnGlossary").addEventListener("click", function () {
+    loadGlossary().then(function () { renderGlossCount(); openGlossary(); });
+  });
+  $("btnGlossBack").addEventListener("click", showHome);
+  $("glossSearch").addEventListener("input", function (e) {
+    glossQuery = e.target.value;
+    renderGlossary();
+  });
+  $("glossChips").addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest("[data-gch]") : null;
+    if (!btn) return;
+    glossChapter = btn.getAttribute("data-gch");
+    renderGlossary();
+  });
+
+  $("btnStudyBack").addEventListener("click", showHome);
 
   $("chapterList").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-chapter]");
@@ -675,6 +1029,7 @@
   });
 
   $("btnHome").addEventListener("click", showHome);
+  $("btnBackTop").addEventListener("click", showHome);
   $("btnSubmit").addEventListener("click", askSubmit);
   $("btnConfirmYes").addEventListener("click", function () { grade(false); });
   $("btnConfirmNo").addEventListener("click", function () { $("confirm").hidden = true; });
@@ -697,6 +1052,14 @@
   renderSetPicks();
   renderChapters();
   showHome();
+  /* the study section only knows how many notes exist once theory.js has arrived */
+  loadTheory().then(function () {
+    renderStudyChapters();
+    if (studyChapter) renderStudy();
+  });
+  /* the home button shows how many terms there are, so fetch the glossary in the
+     background too — it is small, and by the time anyone taps it, it is there */
+  loadGlossary().then(renderGlossCount);
 
   (function restore() {
     var saved = readStore(SESSION_KEY, null);

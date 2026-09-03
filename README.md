@@ -44,12 +44,24 @@ review everything or filter to just your mistakes.
 **Revision by chapter** — untimed practice on one chapter at a time, with the answer and explanation appearing as
 soon as you choose.
 
+**Study the concepts** — notes for every one of the 63 learning objectives the questions target, in English and
+German: what the exam actually asks about that objective, a worked example where the objective involves a
+calculation, the traps that catch people, a *don't confuse* table for the pairs that get mixed up, and a pointer to
+the syllabus section for the authoritative wording. Each note has a *Practise this objective* button that builds an
+untimed set from every question on it. The same note appears inline with the explanation after you answer a
+question, and the result screen links straight to the concepts behind any chapter you scored below 65% on.
+
+**A glossary** — the terms the exam uses, each with the official German equivalent from the German Testing Board
+vocabulary and a plain one-line definition in both languages. Search matches across the English term, the German
+term and both definitions, and you can filter to a single chapter. Useful in either direction: revising in German
+still shows you the English headword you will meet in the exam.
+
 **Attempt history** — every mock exam is recorded with its score, percentage, duration and result.
 
-**English and German** — the whole app, including all 120 questions, their scenarios and their justifications. German
-terminology follows the German Testing Board (GTB) glossary, because that is the vocabulary the German-language exam
-uses: *Fehlhandlung / Fehlerzustand / Fehlerwirkung*, *Äquivalenzklassenbildung*, *Grenzwertanalyse*,
-*Anweisungsüberdeckung*, *Fehlernachtest* and so on. The language follows your browser on first visit and there is a
+**English and German** — the whole app: all 120 questions, their scenarios and justifications, all 63 concept notes,
+and the glossary. German terminology follows the German Testing Board (GTB) glossary, because that is the vocabulary
+the German-language exam uses: *Fehlhandlung / Fehlerzustand / Fehlerwirkung*, *Äquivalenzklassenbildung*,
+*Grenzwertanalyse*, *Anweisungsüberdeckung*, *Fehlernachtest* and so on. The language follows your browser on first visit and there is a
 DE/EN switch in the header; switching mid-exam keeps your answers and the clock.
 
 ## Official practice material
@@ -111,14 +123,16 @@ will not register that way.
 ### Checks and tests
 
 ```bash
-npm run check           # validates the question bank — no browser, instant
+npm run check           # validates the bank, the notes and the glossary — no browser, instant
 npm install             # only needed for the browser tests (installs Playwright)
 npx playwright install chromium
 npm test                # full end-to-end run, both languages
 ```
 
 `npm run check` verifies the blueprint for every set, the answer indices, that translations line up field for field,
-and that no justification refers to an option by letter or position. `npm test` drives a real browser: it sits a
+and that no justification refers to an option by letter or position. It also checks that every concept note has its
+required sections and targets an objective the bank actually uses, and that the glossary has both languages for
+every term with no duplicates. `npm test` drives a real browser: it sits a
 complete exam in each language and asserts 40/40, checks the mixed paper hits the blueprint, switches language
 mid-exam and confirms answers and the clock survive, and reloads offline to confirm the service worker.
 
@@ -139,7 +153,9 @@ index.html                  app shell and all the markup
 assets/app.css              styles, including both colour themes
 assets/i18n.js              interface strings and chapter titles per language
 assets/app.js               exam engine: sessions, timing, shuffling, marking, history
-assets/questions.js         the two question banks — edit this file to add or fix questions
+assets/questions.js         the three question banks — edit this file to add or fix questions
+assets/theory.js            concept notes, keyed by learning objective — fetched on demand
+assets/glossary.js          glossary terms, English and German — fetched on demand
 sw.js                       service worker: precaches the shell for offline use
 manifest.webmanifest        PWA manifest
 icons/                      app icons
@@ -153,6 +169,8 @@ tools/make-icons.py         regenerates the icons
 tools/build-single-file.py  inlines everything into dist/ctfl-practice-exam.html
 tools/serve.js              dependency-free static server behind npm run dev
 tools/check-bank.js         structural validation of the question bank
+tools/check-theory.js       structural validation of the concept notes
+tools/check-glossary.js     structural validation of the glossary
 tools/smoke-test.js         Playwright end-to-end check of every mode
 tools/i18n-test.js          Playwright check that German is complete and marking is language-independent
 ```

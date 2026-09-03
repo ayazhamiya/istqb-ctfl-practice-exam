@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CTFL Practice Exam</title>
 <meta name="description" id="metaDescription" content="A free, offline-capable practice exam for the ISTQB Certified Tester Foundation Level v4.0 syllabus, in English and German: 120 original questions, timed mock exams and chapter revision.">
-<meta name="theme-color" content="#1B3557">
+<meta name="theme-color" content="#A8142B">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -20,21 +20,20 @@
 
 <header class="bar">
   <div class="bar-in">
+    <button class="btn ghost back" id="btnBackTop" type="button" data-i18n-title="brand.home" data-i18n-aria="brand.home" hidden>
+      <span aria-hidden="true">&larr;</span> <span data-i18n="bar.dashboard">Dashboard</span>
+    </button>
     <button class="brand" id="btnHome" type="button" data-i18n-title="brand.home">
       <span class="mark">CTFL</span>
       <span class="brand-txt"><b data-i18n="brand.title">Certified Tester Foundation Level</b><span class="brand-sub" data-i18n="brand.sub">Practice exam · syllabus v4.0</span></span>
     </button>
     <div class="meter" id="meterWrap" hidden>
       <span><span data-i18n="bar.answered">Answered</span> <b id="mAns">0</b>/<b id="mTot">40</b></span>
-      <span aria-hidden="true">·</span>
-      <span><span data-i18n="bar.flagged">Flagged</span> <b id="mFlag">0</b></span>
     </div>
     <div class="clock mono" id="clock" hidden>60:00</div>
     <button class="btn primary" id="btnSubmit" data-i18n="bar.submit" hidden>Submit exam</button>
     <button class="btn ghost" id="btnLang" data-i18n-title="bar.language" data-i18n-aria="bar.language">DE</button>
-    <button class="btn ghost icon" id="btnTheme" data-i18n-title="bar.theme" data-i18n-aria="bar.theme">
-      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 1.4 A6.6 6.6 0 0 1 8 14.6 Z" fill="currentColor"></path></svg>
-    </button>
+    <button class="btn ghost" id="btnTheme" data-i18n-title="bar.theme" data-i18n-aria="bar.theme">Dark</button>
   </div>
 </header>
 
@@ -77,6 +76,18 @@
       <div class="section-h"><h2 data-i18n="home.revise.h">Revise by chapter</h2><span class="hint" data-i18n="home.revise.hint">Untimed · answer shown immediately</span></div>
       <div class="chapters" id="chapterList"></div>
 
+      <div class="section-h"><h2 data-i18n="home.study.h">Study the concepts</h2><span class="hint" data-i18n="home.study.hint">Notes for the objectives the exam tests</span></div>
+      <div class="chapters" id="studyList"></div>
+
+      <div class="section-h"><h2 data-i18n="home.gloss.h">Look up a term</h2><span class="hint" data-i18n="home.gloss.hint">English and German, by chapter</span></div>
+      <div class="chapters">
+        <button class="chap" type="button" id="btnGlossary">
+          <span class="nm" data-i18n="home.gloss.open">Open the glossary</span>
+          <span class="ct" id="glossCount"></span>
+          <span class="arrow" aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+
       <div class="section-h"><h2 data-i18n="home.history.h">Your attempts</h2><span class="hint" id="bestHint"></span></div>
       <div class="card" id="historyCard"></div>
 
@@ -85,7 +96,7 @@
 
     <!-- ============ EXAM / REVISION ============ -->
     <section id="paper" hidden>
-      <div class="card cover" id="paperHead" style="border-top-color:var(--navy); padding-bottom:1.3rem">
+      <div class="card cover" id="paperHead" style="border-top-color:var(--accent); padding-bottom:1.3rem">
         <p class="eyebrow" id="paperEyebrow">Mock examination</p>
         <h1 id="paperTitle" style="font-size:1.35rem">Set M1</h1>
         <p class="sub" id="paperSub" style="margin-bottom:0"></p>
@@ -100,6 +111,38 @@
       </div>
       <div class="go" id="revisionDone" hidden>
         <button class="btn primary" id="btnRevDone" data-i18n="revision.done">Finish revision</button>
+      </div>
+    </section>
+
+    <!-- ============ STUDY ============ -->
+    <section id="study" hidden>
+      <div class="card cover" id="studyHead" style="border-top-color:var(--accent); padding-bottom:1.3rem">
+        <p class="eyebrow" data-i18n="study.eyebrow">Concepts</p>
+        <h1 id="studyTitle" style="font-size:1.35rem"></h1>
+        <p class="sub" id="studySub" style="margin-bottom:0"></p>
+      </div>
+      <div id="studyBody"></div>
+      <div class="go">
+        <button class="btn ghost" id="btnStudyBack" data-i18n="result.back">Back to the start</button>
+      </div>
+    </section>
+
+    <!-- ============ GLOSSARY ============ -->
+    <section id="glossary" hidden>
+      <div class="card cover" style="border-top-color:var(--accent); padding-bottom:1.3rem">
+        <p class="eyebrow" data-i18n="gloss.eyebrow">Glossary</p>
+        <h1 style="font-size:1.35rem" data-i18n="gloss.title">Terms the exam uses</h1>
+        <p class="sub" id="glossSub" style="margin-bottom:0"></p>
+      </div>
+      <div class="card glossctl">
+        <label class="sr-only" for="glossSearch" data-i18n="gloss.searchLabel">Search the glossary</label>
+        <input type="search" id="glossSearch" autocomplete="off" spellcheck="false">
+        <div class="chips" id="glossChips"></div>
+        <p class="gloss-count" id="glossShown"></p>
+      </div>
+      <div id="glossBody"></div>
+      <div class="go">
+        <button class="btn ghost" id="btnGlossBack" data-i18n="result.back">Back to the start</button>
       </div>
     </section>
 
@@ -125,11 +168,23 @@
     <h3 data-i18n="rail.h">Answer sheet</h3>
     <div class="grid" id="grid"></div>
     <div class="legend">
-      <span><i style="background:var(--navy)"></i><span data-i18n="rail.answered">Answered</span></span>
+      <span><i style="background:var(--ink)"></i><span data-i18n="rail.answered">Answered</span></span>
       <span><i style="background:var(--sheet-2);box-shadow:inset 0 0 0 2px var(--flag)"></i><span data-i18n="rail.flagged">Flagged</span></span>
       <span><i style="background:var(--sheet-2);border:1px solid var(--rule-strong)"></i><span data-i18n="rail.unanswered">Not answered</span></span>
     </div>
   </aside>
+</div>
+
+<!-- ============ mobile answer sheet (exam/revision only) ============ -->
+<div class="sheet-wrap" id="mobileSheet" hidden>
+  <button class="sheet-handle-row" id="btnSheetHandle" type="button" aria-hidden="true" tabindex="-1"><span class="sheet-handle"></span></button>
+  <button class="sheet-top-row" id="btnSheetToggle" type="button" aria-expanded="false" aria-controls="gridMobile">
+    <span class="sheet-label" id="sheetFlagLabel"></span>
+    <span class="sheet-count" id="sheetAnsLabel"></span>
+  </button>
+  <div class="sheet-grid" id="sheetGrid" hidden>
+    <div class="grid" id="gridMobile"></div>
+  </div>
 </div>
 
 <script src="assets/i18n.js"></script>
