@@ -23,6 +23,12 @@ def inline_js(match):
 html = re.sub(r'<link rel="stylesheet" href="([^"]+)">', inline_css, html)
 html = re.sub(r'<script src="([^"]+)"></script>', inline_js, html)
 
+# theory.js and glossary.js are fetched on demand at run time, so they are not in
+# index.html. Inline them here, which makes both loaders short-circuit in the single file.
+for name in ("theory.js", "glossary.js"):
+    extra = (root / "assets" / name).read_text()
+    html = html.replace("</body>", "<script>\n" + extra + "\n</script>\n</body>")
+
 # embed the favicon, drop everything the single file cannot use
 icon = base64.b64encode((root / "icons" / "favicon-32.png").read_bytes()).decode()
 html = re.sub(r'<link rel="icon"[^>]*>', '<link rel="icon" href="data:image/png;base64,' + icon + '">', html)

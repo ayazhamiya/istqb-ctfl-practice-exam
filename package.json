@@ -9,13 +9,24 @@
     "test": "node tools/smoke-test.js && node tools/i18n-test.js",
     "test:e2e": "node tools/smoke-test.js",
     "test:i18n": "node tools/i18n-test.js",
-    "check": "node tools/check-bank.js",
+    "check": "node tools/check-bank.js && node tools/check-theory.js && node tools/check-glossary.js",
     "build": "python3 tools/build-single-file.py",
     "icons": "python3 tools/make-icons.py",
-    "merge:de": "node tools/merge-de.js"
+    "merge:de": "node tools/merge-de.js",
+    "check:theory": "node tools/check-theory.js",
+    "check:glossary": "node tools/check-glossary.js"
   },
   "devDependencies": {
     "playwright": "^1.47.0"
   },
-  "keywords": ["istqb", "ctfl", "exam-simulator", "practice-exam", "software-testing", "qa", "pwa", "offline-first"]
+  "keywords": [
+    "istqb",
+    "ctfl",
+    "exam-simulator",
+    "practice-exam",
+    "software-testing",
+    "qa",
+    "pwa",
+    "offline-first"
+  ]
 }

@@ -70,6 +70,29 @@ const server=http.createServer((req,res)=>{
  await p.click('#btnRetake');await p.waitForTimeout(300);
  console.log('history rows after revision (should still be 1):', await p.locator('table.hist tbody tr').count());
 
+ // --- glossary
+ await p.click('#btnGlossary');await p.waitForTimeout(500);
+ console.log('glossary terms:', await p.locator('.gterm').count(), '| count label:', await p.textContent('#glossShown'));
+ await p.fill('#glossSearch','boundary');await p.waitForTimeout(250);
+ console.log('search "boundary":', await p.locator('.gterm').count(), '| marks:', await p.locator('.gterm mark').count());
+ await p.fill('#glossSearch','');await p.click('[data-gch="4"]');await p.waitForTimeout(250);
+ console.log('chapter 4 only:', await p.locator('.gterm').count(),
+   '| sections:', await p.locator('.gsec').count());
+ await p.fill('#glossSearch','zzzznothing');await p.waitForTimeout(250);
+ console.log('no-match empty state:', (await p.textContent('#glossBody')).trim().slice(0,40));
+ await p.fill('#glossSearch','');await p.click('[data-gch="all"]');await p.waitForTimeout(200);
+ await p.screenshot({path:'/root/shot-glossary.png',fullPage:false});
+ // German: same terms, German headwords, marking unaffected
+ await p.click('#btnLang');await p.waitForTimeout(400);
+ console.log('DE glossary terms:', await p.locator('.gterm').count(),
+   '| first headword:', await p.locator('.gterm dt').first().textContent(),
+   '| first alt:', await p.locator('.gterm .de').first().textContent());
+ await p.fill('#glossSearch','Grenzwert');await p.waitForTimeout(250);
+ console.log('DE search "Grenzwert":', await p.locator('.gterm').count());
+ await p.fill('#glossSearch','');await p.click('#btnLang');await p.waitForTimeout(400);
+ await p.click('#btnGlossBack');await p.waitForTimeout(300);
+ console.log('back home from glossary:', await p.isVisible('#home'), '| glossary hidden:', await p.isHidden('#glossary'));
+
  // --- resume flow
  await p.click('[data-set="m2"]');await p.click('#btnStart');await p.waitForTimeout(400);
  await p.click('#q1o0');
