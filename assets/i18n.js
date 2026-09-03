@@ -1,0 +1,235 @@
+/* Interface strings and chapter titles.
+   English is the fallback: any key missing from another language falls back to `en`.
+   German terminology follows the German Testing Board (GTB) glossary, because that is
+   the vocabulary the German-language exam uses. */
+
+window.CTFL_I18N = {
+
+  languages: [
+    { code: "en", label: "EN", name: "English" },
+    { code: "de", label: "DE", name: "Deutsch" }
+  ],
+
+  chapters: {
+    en: {
+      1: "1 Fundamentals of Testing",
+      2: "2 Testing Throughout the SDLC",
+      3: "3 Static Testing",
+      4: "4 Test Analysis and Design",
+      5: "5 Managing the Test Activities",
+      6: "6 Test Tools"
+    },
+    de: {
+      1: "1 Grundlagen des Testens",
+      2: "2 Testen während des Softwareentwicklungslebenszyklus",
+      3: "3 Statischer Test",
+      4: "4 Testanalyse und Testentwurf",
+      5: "5 Management der Testaktivitäten",
+      6: "6 Testwerkzeuge"
+    }
+  },
+
+  strings: {
+    en: {
+      "html.lang": "en",
+      "doc.title": "CTFL Practice Exam",
+      "doc.description": "A free, offline-capable practice exam for the ISTQB Certified Tester Foundation Level v4.0 syllabus, in English and German: 120 original questions, timed mock exams and chapter revision.",
+
+      "brand.title": "Certified Tester Foundation Level",
+      "brand.sub": "Practice exam · syllabus v4.0",
+      "brand.home": "Back to the start screen",
+      "bar.answered": "Answered",
+      "bar.flagged": "Flagged",
+      "bar.submit": "Submit exam",
+      "bar.theme": "Switch between light and dark",
+      "bar.language": "Switch language",
+
+      "cover.eyebrow": "Examination paper",
+      "cover.h1": "Foundation Level practice examination",
+      "cover.sub": "Built to the official ISTQB® CTFL v4.0 exam structure. 120 original questions in three full sets.",
+      "spec.questions": "Questions",
+      "spec.points": "Points",
+      "spec.pass": "Pass mark",
+      "spec.duration": "Duration",
+      "spec.minutes": "60 min",
+      "note.1": "Each question is worth <strong>1 point</strong> and there is no negative marking.",
+      "note.2": "Where a question says <em>Select TWO options</em>, the point is awarded only if <strong>both</strong> selected options are correct.",
+      "note.3": "Questions are not grouped by syllabus chapter, exactly as in a live examination. The chapter and learning objective are revealed with the answers.",
+      "note.4": "Everything is stored in this browser only. Nothing is uploaded anywhere.",
+
+      "home.exam.h": "Sit a mock exam",
+      "home.exam.hint": "Timed · marked at the end",
+      "home.opt.shuffle": "Shuffle question and answer order",
+      "home.opt.extra": "Extra time (75 minutes)",
+      "home.start": "Start exam",
+      "home.resume.exam": "Resume exam in progress",
+      "home.resume.revision": "Resume revision",
+      "home.resume.review": "Review your last paper",
+      "home.resume.left": "left",
+      "home.revise.h": "Revise by chapter",
+      "home.revise.hint": "Untimed · answer shown immediately",
+      "home.history.h": "Your attempts",
+      "home.history.best": "Best",
+      "home.history.empty": "No attempts yet. Your scores will be listed here.",
+      "home.history.clear": "Clear history",
+      "hist.when": "When",
+      "hist.paper": "Paper",
+      "hist.score": "Score",
+      "hist.pct": "%",
+      "hist.time": "Time",
+      "hist.result": "Result",
+
+      "set.m1.name": "Set M1",
+      "set.m1.blurb": "The full syllabus, 40 questions",
+      "set.m2.name": "Set M2",
+      "set.m2.blurb": "40 further questions, same blueprint",
+      "set.m3.name": "Set M3",
+      "set.m3.blurb": "40 more, including the learning objectives the other sets miss",
+      "set.mix.name": "Mixed paper",
+      "set.mix.blurb": "40 drawn at random from all 120, on the official blueprint",
+      "chap.count": "questions",
+
+      "paper.exam": "Mock examination",
+      "paper.revision": "Revision",
+      "paper.chapter": "Chapter",
+      "paper.sub.exam": "{n} questions · 1 point each · pass mark 26/40",
+      "paper.sub.revision": "{n} questions · untimed · the answer appears as soon as you choose",
+
+      "q.number": "Question #{n}",
+      "q.point": "1 point",
+      "q.flag": "Flag",
+      "q.flagged": "Flagged",
+      "q.selectOne": "Select ONE option.",
+      "q.selectTwo": "Select TWO options.",
+      "q.correct": "Correct",
+      "q.incorrect": "Incorrect",
+      "q.key": "Correct answer: {correct} &nbsp;·&nbsp; your answer: {yours}",
+      "q.noAnswer": "no answer",
+      "q.ref": "Syllabus chapter {chapter} · learning objective {lo}",
+
+      "rail.h": "Answer sheet",
+      "rail.answered": "Answered",
+      "rail.flagged": "Flagged",
+      "rail.unanswered": "Not answered",
+
+      "confirm.all": "All {n} questions are answered. Submitting ends the exam and marks your paper.",
+      "confirm.some": "{n} question(s) are still unanswered. Unanswered questions score zero.",
+      "confirm.yes": "Submit and mark",
+      "confirm.no": "Keep working",
+      "revision.done": "Finish revision",
+
+      "result.h": "Result",
+      "result.pass": "Pass",
+      "result.fail": "Fail",
+      "result.meta": "{pct}% · pass mark 26/40 (65%) · {min} min",
+      "result.meta.revision": "{pct}% · {min} min",
+      "result.auto": " · submitted automatically at time-up",
+      "result.reviewAll": "Review every question",
+      "result.reviewWrong": "Review only my mistakes",
+      "result.back": "Back to the start",
+
+      "foot": "Original practice material written to match the structure, question types and difficulty of the ISTQB® Certified Tester Foundation Level v4.0 examination. Not affiliated with, endorsed by, or a substitute for the official ISTQB® materials. ISTQB® is a registered trademark of the International Software Testing Qualifications Board."
+    },
+
+    de: {
+      "html.lang": "de",
+      "doc.title": "CTFL Übungsprüfung",
+      "doc.description": "Kostenlose, offlinefähige Übungsprüfung zum ISTQB Certified Tester Foundation Level v4.0, auf Englisch und Deutsch: 120 eigene Fragen, Prüfungssimulation auf Zeit und Wiederholung nach Kapiteln.",
+
+      "brand.title": "Certified Tester Foundation Level",
+      "brand.sub": "Übungsprüfung · Lehrplan v4.0",
+      "brand.home": "Zurück zur Startseite",
+      "bar.answered": "Beantwortet",
+      "bar.flagged": "Markiert",
+      "bar.submit": "Prüfung abgeben",
+      "bar.theme": "Zwischen hell und dunkel wechseln",
+      "bar.language": "Sprache wechseln",
+
+      "cover.eyebrow": "Prüfungsbogen",
+      "cover.h1": "Übungsprüfung Foundation Level",
+      "cover.sub": "Nach der offiziellen Prüfungsstruktur des ISTQB® CTFL v4.0 aufgebaut. 120 eigene Fragen in drei vollständigen Sätzen.",
+      "spec.questions": "Fragen",
+      "spec.points": "Punkte",
+      "spec.pass": "Bestehensgrenze",
+      "spec.duration": "Dauer",
+      "spec.minutes": "60 Min.",
+      "note.1": "Jede Frage zählt <strong>1 Punkt</strong>. Für falsche Antworten werden keine Punkte abgezogen.",
+      "note.2": "Wenn eine Frage <em>Wählen Sie ZWEI Antworten</em> verlangt, wird der Punkt nur vergeben, wenn <strong>beide</strong> gewählten Antworten richtig sind.",
+      "note.3": "Die Fragen sind nicht nach Lehrplankapiteln gruppiert, genau wie in der echten Prüfung. Kapitel und Lernziel werden zusammen mit den Antworten angezeigt.",
+      "note.4": "Alles wird ausschließlich in diesem Browser gespeichert. Es werden keine Daten übertragen.",
+
+      "home.exam.h": "Prüfungssimulation",
+      "home.exam.hint": "Auf Zeit · Auswertung am Ende",
+      "home.opt.shuffle": "Reihenfolge von Fragen und Antworten mischen",
+      "home.opt.extra": "Zeitzuschlag (75 Minuten)",
+      "home.start": "Prüfung starten",
+      "home.resume.exam": "Laufende Prüfung fortsetzen",
+      "home.resume.revision": "Wiederholung fortsetzen",
+      "home.resume.review": "Letzte Prüfung ansehen",
+      "home.resume.left": "verbleibend",
+      "home.revise.h": "Nach Kapitel wiederholen",
+      "home.revise.hint": "Ohne Zeitlimit · Antwort sofort sichtbar",
+      "home.history.h": "Ihre Versuche",
+      "home.history.best": "Bestwert",
+      "home.history.empty": "Noch keine Versuche. Ihre Ergebnisse erscheinen hier.",
+      "home.history.clear": "Verlauf löschen",
+      "hist.when": "Wann",
+      "hist.paper": "Satz",
+      "hist.score": "Punkte",
+      "hist.pct": "%",
+      "hist.time": "Dauer",
+      "hist.result": "Ergebnis",
+
+      "set.m1.name": "Satz M1",
+      "set.m1.blurb": "Der gesamte Lehrplan, 40 Fragen",
+      "set.m2.name": "Satz M2",
+      "set.m2.blurb": "40 weitere Fragen, gleiche Verteilung",
+      "set.m3.name": "Satz M3",
+      "set.m3.blurb": "40 weitere, mit den Lernzielen, die in den anderen Sätzen fehlen",
+      "set.mix.name": "Gemischter Satz",
+      "set.mix.blurb": "40 zufällig aus allen 120, nach der offiziellen Verteilung",
+      "chap.count": "Fragen",
+
+      "paper.exam": "Prüfungssimulation",
+      "paper.revision": "Wiederholung",
+      "paper.chapter": "Kapitel",
+      "paper.sub.exam": "{n} Fragen · je 1 Punkt · Bestehensgrenze 26/40",
+      "paper.sub.revision": "{n} Fragen · ohne Zeitlimit · die Antwort erscheint sofort nach Ihrer Wahl",
+
+      "q.number": "Frage #{n}",
+      "q.point": "1 Punkt",
+      "q.flag": "Markieren",
+      "q.flagged": "Markiert",
+      "q.selectOne": "Wählen Sie EINE Antwort.",
+      "q.selectTwo": "Wählen Sie ZWEI Antworten.",
+      "q.correct": "Richtig",
+      "q.incorrect": "Falsch",
+      "q.key": "Richtige Antwort: {correct} &nbsp;·&nbsp; Ihre Antwort: {yours}",
+      "q.noAnswer": "keine Antwort",
+      "q.ref": "Lehrplankapitel {chapter} · Lernziel {lo}",
+
+      "rail.h": "Antwortbogen",
+      "rail.answered": "Beantwortet",
+      "rail.flagged": "Markiert",
+      "rail.unanswered": "Nicht beantwortet",
+
+      "confirm.all": "Alle {n} Fragen sind beantwortet. Mit dem Abgeben endet die Prüfung und Ihr Bogen wird ausgewertet.",
+      "confirm.some": "{n} Frage(n) sind noch unbeantwortet. Unbeantwortete Fragen zählen null Punkte.",
+      "confirm.yes": "Abgeben und auswerten",
+      "confirm.no": "Weiterarbeiten",
+      "revision.done": "Wiederholung beenden",
+
+      "result.h": "Ergebnis",
+      "result.pass": "Bestanden",
+      "result.fail": "Nicht bestanden",
+      "result.meta": "{pct}% · Bestehensgrenze 26/40 (65%) · {min} Min.",
+      "result.meta.revision": "{pct}% · {min} Min.",
+      "result.auto": " · nach Zeitablauf automatisch abgegeben",
+      "result.reviewAll": "Alle Fragen durchsehen",
+      "result.reviewWrong": "Nur meine Fehler durchsehen",
+      "result.back": "Zurück zum Start",
+
+      "foot": "Eigenes Übungsmaterial, geschrieben nach Struktur, Fragetypen und Schwierigkeitsgrad der ISTQB®-Prüfung Certified Tester Foundation Level v4.0. Nicht mit dem ISTQB® verbunden, nicht vom ISTQB® freigegeben und kein Ersatz für die offiziellen ISTQB®-Materialien. ISTQB® ist eine eingetragene Marke des International Software Testing Qualifications Board."
+    }
+  }
+};

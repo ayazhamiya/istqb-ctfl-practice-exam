@@ -1,9 +1,10 @@
-# ISTQB CTFL Practice Exam
+# CTFL Practice Exam
 
 A free, offline-capable practice exam for the **ISTQB® Certified Tester Foundation Level, syllabus v4.0**.
 
-80 original questions in two full sets, written to match the structure, question types and difficulty of the real
-examination. No accounts, no tracking, no backend — it is a static page that installs to your phone like an app.
+120 original questions in three full sets, written to match the structure, question types and difficulty of the real
+examination, **in English and German**. No accounts, no tracking, no backend — it is a static page that installs to
+your phone like an app.
 
 > **Not affiliated with, endorsed by, or a substitute for the official ISTQB® materials.**
 > ISTQB® is a registered trademark of the International Software Testing Qualifications Board.
@@ -33,7 +34,7 @@ calculation questions the exam is built around: equivalence partitioning, bounda
 decision tables, state transition diagrams and tables, statement and branch coverage over pseudocode, three-point
 estimation and dependency-constrained test prioritization.
 
-**Three papers** — Set M1, Set M2, or a mixed paper drawing 40 questions at random from all 80, still on the
+**Four papers** — Set M1, M2 or M3, or a mixed paper drawing 40 questions at random from all 120, still on the
 blueprint. Question and answer order are shuffled per attempt by default, so a second sitting is not a memory test.
 
 **Marking and review** — a score, a pass/fail stamp, a per-chapter breakdown showing where to revise, and for every
@@ -44,6 +45,26 @@ review everything or filter to just your mistakes.
 soon as you choose.
 
 **Attempt history** — every mock exam is recorded with its score, percentage, duration and result.
+
+**English and German** — the whole app, including all 120 questions, their scenarios and their justifications. German
+terminology follows the German Testing Board (GTB) glossary, because that is the vocabulary the German-language exam
+uses: *Fehlhandlung / Fehlerzustand / Fehlerwirkung*, *Äquivalenzklassenbildung*, *Grenzwertanalyse*,
+*Anweisungsüberdeckung*, *Fehlernachtest* and so on. The language follows your browser on first visit and there is a
+DE/EN switch in the header; switching mid-exam keeps your answers and the clock.
+
+## Official practice material
+
+This project is **not** a copy of anyone's exam. The questions here are original, which is what lets them be MIT
+licensed. The official sample exams are published free by the boards themselves, and they are worth working through
+alongside this app — get them from the source rather than from a third party:
+
+- **ISTQB® CTFL v4.0 sample exams A–D**, with separate answer and justification documents: <https://istqb.org/certifications/certified-tester-foundation-level/>
+- **ASTQB sample exams**: <https://astqb.org/resources/>
+- **The syllabus itself**, which is the only thing the exam is actually written from: <https://istqb.org/certifications/certified-tester-foundation-level/>
+- **German-language exams and syllabus** are available through the German Testing Board: <https://www.gtb.de/>
+
+Please do not open a pull request that adds questions copied from those documents, from a commercial question bank,
+or from an exam dump. They are not ours to relicense, and it would put the whole repository at risk.
 
 ## Install it on your phone
 
@@ -64,17 +85,42 @@ to system fonts and works exactly the same.
 
 ## Run it locally
 
-No build step and no dependencies. Any static file server will do:
+The app itself has **no dependencies and no build step** — it is plain HTML, CSS and JavaScript. The only tooling is
+for tests and for regenerating assets.
 
 ```bash
-git clone https://github.com/<your-username>/ctfl-practice-exam.git
-cd ctfl-practice-exam
-python3 -m http.server 8000
-# open http://localhost:8000
+git clone https://github.com/<your-username>/istqb-ctfl-practice-exam.git
+cd istqb-ctfl-practice-exam
+npm run dev             # http://localhost:8000, no install needed
 ```
 
-Opening `index.html` directly from the filesystem also mostly works, but service workers need `http://`, so offline
-mode will not register.
+`npm run dev` uses a small dependency-free Node server in `tools/serve.js`, so it works straight after cloning. If you
+would rather not use Node at all, any static file server does the job:
+
+```bash
+python3 -m http.server 8000
+```
+
+Opening `index.html` straight from the filesystem mostly works, but service workers require `http://`, so offline mode
+will not register that way.
+
+> **If an edit does not appear, it is the service worker.** It caches the app for offline use. Hard-reload with
+> Cmd/Ctrl+Shift+R, or tick *Update on reload* under DevTools → Application → Service Workers. `npm run dev` sends
+> `Cache-Control: no-store`, which handles everything except the service worker itself.
+
+### Checks and tests
+
+```bash
+npm run check           # validates the question bank — no browser, instant
+npm install             # only needed for the browser tests (installs Playwright)
+npx playwright install chromium
+npm test                # full end-to-end run, both languages
+```
+
+`npm run check` verifies the blueprint for every set, the answer indices, that translations line up field for field,
+and that no justification refers to an option by letter or position. `npm test` drives a real browser: it sits a
+complete exam in each language and asserts 40/40, checks the mixed paper hits the blueprint, switches language
+mid-exam and confirms answers and the clock survive, and reloads offline to confirm the service worker.
 
 ## Deploy your own copy
 
@@ -91,14 +137,24 @@ Everything uses relative paths, so it works from a subdirectory without configur
 ```
 index.html                  app shell and all the markup
 assets/app.css              styles, including both colour themes
+assets/i18n.js              interface strings and chapter titles per language
 assets/app.js               exam engine: sessions, timing, shuffling, marking, history
 assets/questions.js         the two question banks — edit this file to add or fix questions
 sw.js                       service worker: precaches the shell for offline use
 manifest.webmanifest        PWA manifest
 icons/                      app icons
+tools/de-m1.js              German translation of set M1 (merged into questions.js)
+tools/de-m2.js              German translation of set M2 (merged into questions.js)
+tools/m3-en.js              source of set M3 before interleaving and key balancing
+tools/de-m3.js              German translation of set M3 (merged into questions.js)
+tools/build-m3.js           checks the blueprint, interleaves the chapters, balances the answer key
+tools/merge-de.js           merges the translations in and checks they line up
 tools/make-icons.py         regenerates the icons
 tools/build-single-file.py  inlines everything into dist/ctfl-practice-exam.html
+tools/serve.js              dependency-free static server behind npm run dev
+tools/check-bank.js         structural validation of the question bank
 tools/smoke-test.js         Playwright end-to-end check of every mode
+tools/i18n-test.js          Playwright check that German is complete and marking is language-independent
 ```
 
 ### Question format
@@ -119,11 +175,22 @@ Each question in `assets/questions.js` looks like this:
   multi: true,                 // optional: "Select TWO options"
   opts: ["…", "…", "…", "…"],
   ans: [2],                    // indices into opts
-  just: "…"                    // why the answer is right and the others are not
+  just: "…",                   // why the answer is right and the others are not
+  i18n: { de: { … } }          // translated text fields; ans and option order are shared
 }
 ```
 
-Justifications never refer to answers by letter, because the option order is shuffled at run time.
+`i18n` carries only the text: `ans` and the order of `opts` are shared across every language, so marking cannot drift
+between translations. Any field missing from a translation falls back to English, so a partial translation degrades
+gracefully rather than blanking the page.
+
+**Adding a language.** Add it to `languages` and `strings` in `assets/i18n.js`, add the chapter titles, then add your
+code as another key inside each question's `i18n`. `node tools/merge-de.js` shows the pattern and the alignment checks
+worth copying.
+
+Justifications never refer to an answer by letter **or by position** — no "option b", no "the second option" —
+because both the question order and the option order are shuffled at run time. `tools/merge-de.js` and
+`tools/build-m3.js` both refuse to build if a justification breaks that rule.
 
 ### Single-file build
 
@@ -132,8 +199,8 @@ file you can email or carry on a USB stick.
 
 ## Contributing
 
-Corrections to questions and justifications are very welcome — open an issue or a pull request quoting the
-question and the syllabus section. Please keep new questions original: do not paste in questions from the official
+Corrections to questions, justifications and especially the German terminology are very welcome — open an issue or a
+pull request quoting the question and the syllabus section. Please keep new questions original: do not paste in questions from the official
 ISTQB sample exams or from any commercial question bank.
 
 ## Licence

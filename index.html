@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CTFL Practice Exam</title>
-<meta name="description" content="A free, offline-capable practice exam for the ISTQB Certified Tester Foundation Level v4.0 syllabus: 80 original questions, timed mock exams and chapter revision.">
+<meta name="description" id="metaDescription" content="A free, offline-capable practice exam for the ISTQB Certified Tester Foundation Level v4.0 syllabus, in English and German: 120 original questions, timed mock exams and chapter revision.">
 <meta name="theme-color" content="#1B3557">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
@@ -20,18 +20,19 @@
 
 <header class="bar">
   <div class="bar-in">
-    <button class="brand" id="btnHome" type="button" title="Back to the start screen">
+    <button class="brand" id="btnHome" type="button" data-i18n-title="brand.home">
       <span class="mark">CTFL</span>
-      <span class="brand-txt"><b>Certified Tester Foundation Level</b><span class="brand-sub">Practice exam &middot; syllabus v4.0</span></span>
+      <span class="brand-txt"><b data-i18n="brand.title">Certified Tester Foundation Level</b><span class="brand-sub" data-i18n="brand.sub">Practice exam · syllabus v4.0</span></span>
     </button>
     <div class="meter" id="meterWrap" hidden>
-      <span>Answered <b id="mAns">0</b>/<b id="mTot">40</b></span>
-      <span aria-hidden="true">&middot;</span>
-      <span>Flagged <b id="mFlag">0</b></span>
+      <span><span data-i18n="bar.answered">Answered</span> <b id="mAns">0</b>/<b id="mTot">40</b></span>
+      <span aria-hidden="true">·</span>
+      <span><span data-i18n="bar.flagged">Flagged</span> <b id="mFlag">0</b></span>
     </div>
     <div class="clock mono" id="clock" hidden>60:00</div>
-    <button class="btn primary" id="btnSubmit" hidden>Submit exam</button>
-    <button class="btn ghost icon" id="btnTheme" title="Switch between light and dark" aria-label="Switch between light and dark">
+    <button class="btn primary" id="btnSubmit" data-i18n="bar.submit" hidden>Submit exam</button>
+    <button class="btn ghost" id="btnLang" data-i18n-title="bar.language" data-i18n-aria="bar.language">DE</button>
+    <button class="btn ghost icon" id="btnTheme" data-i18n-title="bar.theme" data-i18n-aria="bar.theme">
       <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 1.4 A6.6 6.6 0 0 1 8 14.6 Z" fill="currentColor"></path></svg>
     </button>
   </div>
@@ -43,46 +44,43 @@
     <!-- ============ HOME ============ -->
     <section id="home">
       <div class="card cover">
-        <p class="eyebrow hot">Examination paper</p>
-        <h1>Foundation Level practice examination</h1>
-        <p class="sub">Built to the official ISTQB<sup>&reg;</sup> CTFL v4.0 exam structure. 80 original questions in two full sets.</p>
+        <p class="eyebrow hot" data-i18n="cover.eyebrow">Examination paper</p>
+        <h1 data-i18n="cover.h1">Foundation Level practice examination</h1>
+        <p class="sub" data-i18n-html="cover.sub">Built to the official ISTQB® CTFL v4.0 exam structure. 120 original questions in three full sets.</p>
         <dl class="spec">
-          <div><dt>Questions</dt><dd>40</dd></div>
-          <div><dt>Points</dt><dd>40</dd></div>
-          <div><dt>Pass mark</dt><dd>26 &middot; 65%</dd></div>
-          <div><dt>Duration</dt><dd>60 min</dd></div>
+          <div><dt data-i18n="spec.questions">Questions</dt><dd>40</dd></div>
+          <div><dt data-i18n="spec.points">Points</dt><dd>40</dd></div>
+          <div><dt data-i18n="spec.pass">Pass mark</dt><dd>26 · 65%</dd></div>
+          <div><dt data-i18n="spec.duration">Duration</dt><dd data-i18n="spec.minutes">60 min</dd></div>
         </dl>
         <div class="note">
           <ul>
-            <li>Each question is worth <strong>1 point</strong> and there is no negative marking.</li>
-            <li>Where a question says <em>Select TWO options</em>, the point is awarded only if <strong>both</strong> selected options are correct.</li>
-            <li>Questions are not grouped by syllabus chapter, exactly as in a live examination. The chapter and learning objective are revealed with the answers.</li>
-            <li>Everything is stored in this browser only. Nothing is uploaded anywhere.</li>
+            <li data-i18n-html="note.1"></li>
+            <li data-i18n-html="note.2"></li>
+            <li data-i18n-html="note.3"></li>
+            <li data-i18n-html="note.4"></li>
           </ul>
         </div>
       </div>
 
-      <div class="section-h"><h2>Sit a mock exam</h2><span class="hint">Timed &middot; marked at the end</span></div>
+      <div class="section-h"><h2 data-i18n="home.exam.h">Sit a mock exam</h2><span class="hint" data-i18n="home.exam.hint">Timed · marked at the end</span></div>
       <div class="picks" id="setPicks"></div>
       <div class="optrow">
-        <label><input type="checkbox" id="optShuffle" checked> Shuffle question and answer order</label>
-        <label><input type="checkbox" id="optExtra"> Extra time (75 minutes)</label>
+        <label><input type="checkbox" id="optShuffle" checked> <span data-i18n="home.opt.shuffle">Shuffle question and answer order</span></label>
+        <label><input type="checkbox" id="optExtra"> <span data-i18n="home.opt.extra">Extra time (75 minutes)</span></label>
       </div>
       <div class="go">
-        <button class="btn primary" id="btnStart">Start exam</button>
-        <button class="btn ghost" id="btnResume" hidden>Resume exam in progress</button>
+        <button class="btn primary" id="btnStart" data-i18n="home.start">Start exam</button>
+        <button class="btn ghost" id="btnResume" hidden></button>
       </div>
 
-      <div class="section-h"><h2>Revise by chapter</h2><span class="hint">Untimed &middot; answer shown immediately</span></div>
+      <div class="section-h"><h2 data-i18n="home.revise.h">Revise by chapter</h2><span class="hint" data-i18n="home.revise.hint">Untimed · answer shown immediately</span></div>
       <div class="chapters" id="chapterList"></div>
 
-      <div class="section-h"><h2>Your attempts</h2><span class="hint" id="bestHint"></span></div>
-      <div class="card" id="historyCard"><p class="empty">No attempts yet. Your scores will be listed here.</p></div>
+      <div class="section-h"><h2 data-i18n="home.history.h">Your attempts</h2><span class="hint" id="bestHint"></span></div>
+      <div class="card" id="historyCard"></div>
 
-      <p class="foot">
-        Original practice material written to match the structure, question types and difficulty of the ISTQB<sup>&reg;</sup> Certified Tester Foundation Level v4.0 examination.
-        Not affiliated with, endorsed by, or a substitute for the official ISTQB<sup>&reg;</sup> materials. ISTQB<sup>&reg;</sup> is a registered trademark of the International Software Testing Qualifications Board.
-      </p>
+      <p class="foot" data-i18n-html="foot"></p>
     </section>
 
     <!-- ============ EXAM / REVISION ============ -->
@@ -90,50 +88,51 @@
       <div class="card cover" id="paperHead" style="border-top-color:var(--navy); padding-bottom:1.3rem">
         <p class="eyebrow" id="paperEyebrow">Mock examination</p>
         <h1 id="paperTitle" style="font-size:1.35rem">Set M1</h1>
-        <p class="sub" id="paperSub" style="margin-bottom:0">40 questions &middot; 1 point each</p>
+        <p class="sub" id="paperSub" style="margin-bottom:0"></p>
       </div>
       <main id="sheet"></main>
       <div class="confirm" id="confirm" hidden>
         <p id="confirmText"></p>
         <div class="go" style="margin-top:0">
-          <button class="btn primary" id="btnConfirmYes">Submit and mark</button>
-          <button class="btn ghost" id="btnConfirmNo">Keep working</button>
+          <button class="btn primary" id="btnConfirmYes" data-i18n="confirm.yes">Submit and mark</button>
+          <button class="btn ghost" id="btnConfirmNo" data-i18n="confirm.no">Keep working</button>
         </div>
       </div>
       <div class="go" id="revisionDone" hidden>
-        <button class="btn primary" id="btnRevDone">Finish revision</button>
+        <button class="btn primary" id="btnRevDone" data-i18n="revision.done">Finish revision</button>
       </div>
     </section>
 
     <!-- ============ RESULT ============ -->
     <section class="card result" id="result" hidden>
-      <p class="eyebrow">Result</p>
+      <p class="eyebrow" data-i18n="result.h">Result</p>
       <div class="score">
         <span class="big" id="rScore">0/40</span>
-        <span class="stamp" id="rStamp">Pass</span>
+        <span class="stamp" id="rStamp"></span>
         <span style="font-family:var(--sans);font-size:.82rem;color:var(--ink-2)" id="rMeta"></span>
       </div>
       <div class="bars" id="rBars"></div>
       <div class="go">
-        <button class="btn primary" id="btnReview">Review every question</button>
-        <button class="btn" id="btnWrong">Review only my mistakes</button>
-        <button class="btn ghost" id="btnRetake">Back to the start</button>
+        <button class="btn primary" id="btnReview" data-i18n="result.reviewAll">Review every question</button>
+        <button class="btn" id="btnWrong" data-i18n="result.reviewWrong">Review only my mistakes</button>
+        <button class="btn ghost" id="btnRetake" data-i18n="result.back">Back to the start</button>
       </div>
     </section>
 
   </div>
 
   <aside class="rail" id="rail" hidden>
-    <h3>Answer sheet</h3>
+    <h3 data-i18n="rail.h">Answer sheet</h3>
     <div class="grid" id="grid"></div>
     <div class="legend">
-      <span><i style="background:var(--navy)"></i>Answered</span>
-      <span><i style="background:var(--sheet-2);box-shadow:inset 0 0 0 2px var(--flag)"></i>Flagged</span>
-      <span><i style="background:var(--sheet-2);border:1px solid var(--rule-strong)"></i>Not answered</span>
+      <span><i style="background:var(--navy)"></i><span data-i18n="rail.answered">Answered</span></span>
+      <span><i style="background:var(--sheet-2);box-shadow:inset 0 0 0 2px var(--flag)"></i><span data-i18n="rail.flagged">Flagged</span></span>
+      <span><i style="background:var(--sheet-2);border:1px solid var(--rule-strong)"></i><span data-i18n="rail.unanswered">Not answered</span></span>
     </div>
   </aside>
 </div>
 
+<script src="assets/i18n.js"></script>
 <script src="assets/questions.js"></script>
 <script src="assets/app.js"></script>
 <script>
